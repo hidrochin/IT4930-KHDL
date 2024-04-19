@@ -28,28 +28,18 @@ params = (
 def parser_product(json):
     d = dict()
     d['id'] = json.get('id')
-    d['sold'] = json.get('all_time_quantity_sold')
-    d['brand'] = json.get('brand').get('name')
     d['category'] = json.get('categories').get('name')
-    d['seller'] = json.get('current_seller').get('name')
-    d['day_since_created'] = json.get('day_ago_created')
-    d['discount_rate'] = json.get('discount_rate')
-    d['list_price'] = json.get('list_price')
     d['name'] = json.get('name')
-    d['original_price'] = json.get('original_price')
-    d['promotions'] = json.get('promotions')
     d['rating_avg'] = json.get('rating_average')
     d['num_review'] = json.get('review_count')
     d['review_text'] = json.get('review_text')
-    d['short_description'] = json.get('short_description')
     spec = json.get('specifications')[0].get('attributes')
     for i in spec:
         d[i.get('name')] = i.get('value')
 
     return d
 
-
-df_id = pd.read_csv('product_id_ncds.csv')
+df_id = pd.read_csv('data/dth-tiki/result/product_id_ncds.csv')
 p_ids = df_id.id.to_list()
 print(p_ids)
 result = []
@@ -70,7 +60,7 @@ for idx, pid in  enumerate(p_ids):
     if idx % 5 == 0:
         print(idx)
         df = pd.DataFrame(result)
-        df.to_csv("crawled_data_ncds.csv")
+        df.to_csv("data/dth-tiki/result/crawled_data_ncds.csv",index=False)
         print('saving successfully')
 df_product = pd.DataFrame(result)
-df_product.to_csv('crawled_data_ncds.csv', index=False)
+df_product.to_csv('data/dth-tiki/result/crawled_data_ncds.csv', index=False)

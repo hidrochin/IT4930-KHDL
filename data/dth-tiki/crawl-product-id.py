@@ -2,7 +2,6 @@ import requests
 import time
 import pandas as pd
 import random
-
 cookies = {'_trackity':'f42ea536-5842-867f-587e-1a47852be7b4',
            'TOKENS':'{%22access_token%22:%22kax4WoQfzPUY2mhKri1sFbCJVDe0X8w9%22%2C%22expires_in%22:157680000%2C%22expires_at%22:1829937876436%2C%22guest_token%22:%22kax4WoQfzPUY2mhKri1sFbCJVDe0X8w9%22}',
            '_ga':'GA1.2.1017622613.1672257935',
@@ -27,7 +26,7 @@ params = {'limit': '40',
           'page': '1',
           'urlKey': 'dien-thoai-may-tinh-bang'
           }
-
+#NHO SUA DUONG DAN FILE
 prod_id = []
 for i in range(1, 30):
     params['page'] = i
@@ -39,7 +38,7 @@ for i in range(1, 30):
     time.sleep(random.randrange(3, 10))
     if i % 5 ==0:
         df = pd.DataFrame(prod_id)
-        df.to_csv('product_id_ncds.csv', index=False)
+        df.to_csv('data/dth-tiki/result/product_id_ncds.csv', index=False)
 
 df = pd.DataFrame(prod_id)
-df.to_csv('product_id_ncds.csv', index=False)
+df.to_csv('data/dth-tiki/result/product_id_ncds.csv', index=False)

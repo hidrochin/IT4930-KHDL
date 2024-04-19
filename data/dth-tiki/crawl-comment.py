@@ -58,7 +58,7 @@ params = {
     'product_id': '273947988',
     'sort': 'score|desc,id|desc,stars|all',
     'page': '1',
-    'limit': '10',
+    'limit': '20',
     'include': 'comments'
 }
 
@@ -67,22 +67,18 @@ def comment_parser(json):
     d['id'] = json.get(id)
     d['title'] = json.get('title')
     d['content'] = json.get('content')
-    d['thank_count'] = json.get('thank_count')
-    d['customer_id']  = json.get('customer_id')
     d['rating'] = json.get('rating')
-    d['created_at'] = json.get('created_at')
-    d['customer_name'] = json.get('created_by').get('name')
-    d['purchased_at'] = json.get('created_by').get('purchased_at')
+
     return d
 
 
-df_id = pd.read_csv('product_id_ncds.csv')
+df_id = pd.read_csv('data/dth-tiki/result/product_id_ncds.csv')
 p_ids = df_id.id.to_list()
 result = []
 for pid in tqdm(p_ids, total=len(p_ids)):
     params['product_id'] = pid
     print('Crawl comment for product {}'.format(pid))
-    for i in range(2):
+    for i in range(20):
         params['page'] = i
         response = requests.get('https://tiki.vn/api/v2/reviews', headers=headers, params=params, cookies=cookies)
         if response.status_code == 200:
@@ -90,4 +86,4 @@ for pid in tqdm(p_ids, total=len(p_ids)):
             for comment in response.json().get('data'):
                 result.append(comment_parser(comment))
 df_comment = pd.DataFrame(result)
-df_comment.to_csv('comments_data_ncds.csv', index=False)
+df_comment.to_csv('data/dth-tiki/result/comments_data_ncds.csv', index=False)
