@@ -1,4 +1,5 @@
 import pandas as pd
+import xlsxwriter
 
 data_files = [
     'data/dth-tiki/result/comments_data_ncds.csv',
@@ -7,39 +8,33 @@ data_files = [
     'data/book-tiki/result/comments_data_ncds.csv'
 ]
 
-dfs = []  
-df1 = []
+dfs = []
+sample_size = 5000
 
 for file in data_files:
     df = pd.read_csv(file)
     df_negative = df[(df['rating'] <= 3) & df['content'].notnull()]
+    if len(df_negative) > sample_size:
+        df_negative = df_negative.sample(sample_size, random_state=42)
     dfs.append(df_negative)
 
 merged_df = pd.concat(dfs)
+merged_df = merged_df.sample(frac=1, random_state=42) 
 
-merged_df = merged_df.drop('customer_id', axis=1)
 
-merged_df = merged_df.drop('id', axis=1)
+merged_df.reset_index(drop=True, inplace=True)
 
-merged_df = merged_df.drop('title', axis=1)
+merged_df.drop('id', axis=1, inplace=True)
 
-non_duplicates_df = merged_df.drop_duplicates(subset='content')
+merged_df.drop('customer_id', axis=1, inplace=True)
 
-non_duplicates_df.to_json('data/data-negative.json', orient='records', force_ascii=False)
+num_files = 6
+split_sizes = [2500, 2500, 2500, 1000, 1000, 1000]
 
-for file in data_files:
-    df = pd.read_csv(file)
-    df_positive = df[(df['rating'] > 3) & df['content'].notnull()]
-    df1.append(df_positive)
-
-merged_df = pd.concat(df1)
-
-merged_df = merged_df.drop('customer_id', axis=1)
-
-merged_df = merged_df.drop('id', axis=1)
-
-merged_df = merged_df.drop('title', axis=1)
-
-non_duplicates_df = merged_df.drop_duplicates(subset='content')
-
-non_duplicates_df.to_json('data/data-positive.json', orient='records', force_ascii=False)
+start_index = 0
+for i in range(num_files):
+    end_index = start_index + split_sizes[i]
+    file_name = f'data/data_split_{i+1}.xlsx'
+    subset_df = merged_df[start_index:end_index]
+    subset_df.to_excel(file_name, engine='xlsxwriter')
+    start_index = end_index
