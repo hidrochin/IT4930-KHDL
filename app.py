@@ -1,19 +1,15 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, render_template
+import pickle
+from keras.models import load_model
 import numpy as np
 from keras.preprocessing.sequence import pad_sequences
-from keras.models import load_model
-from preprocessing import preprocess_comment
-from tensorflow.keras.preprocessing.text import Tokenizer
+from keras.preprocessing.text import Tokenizer
+from preprocessing import preprocess_comment  # Import the preprocessing function
 
 app = Flask(__name__)
 
-# Load model
-model_LSTM = load_model('model/LSTM.weights.h5')
-model_GRU = load_model('model/GRU.weights.h5')
-model_CONV = load_model('model/conv.weights.h5')
-
+# Constants and label mappings
 MAXLEN = 120  # Độ dài tối đa của chuỗi đầu vào
-
 label_map = {
     'quality': 0,
     'service': 1,
@@ -22,23 +18,51 @@ label_map = {
 }
 inverse_label_map = {v: k for k, v in label_map.items()}
 
-@app.route('/predict', methods=['POST'])
-def predict():
-    data = request.json
-    new_comment = data['comment']
-    cleaned_comment = preprocess_comment(new_comment)
+# Load machine learning models
+ml_models = {
+    'model1': pickle.load(open('models/lr_classifier.pkl', 'rb')),
+    'model2': pickle.load(open('models/rf_classifier.pkl', 'rb')),
+    'model3': pickle.load(open('models/svm_classifier.pkl', 'rb'))
+}
 
-    new_comment_seq = tokenizer.texts_to_sequences([cleaned_comment])
-    new_comment_padded = pad_sequences(new_comment_seq, maxlen=MAXLEN, padding='post')
+# Load deep learning models
+dl_models = {
+    'model4': load_model('image/LSTM.weights.h5'),
+    'model5': load_model('image/GRU.weights.h5'),
+    'model6': load_model('image/conv.weights.h5')
+}
 
-    predictions = {}
-    for model_name, model in zip(label_map.keys(), [model_LSTM, model_GRU, model_CONV]):
-        prediction = model.predict(new_comment_padded)
-        predicted_label = np.argmax(prediction, axis=1)[0]
-        predicted_label_name = inverse_label_map[predicted_label]
-        predictions[model_name] = predicted_label_name
-    
-    return jsonify(predictions)
+# Tokenizer for text preprocessing
+tokenizer = Tokenizer()
+
+@app.route('/', methods=['GET', 'POST'])
+def index():
+    if request.method == 'POST':
+        comment = request.form['comment']
+        model_name = request.form['model']
+        result = predict(comment, model_name)
+        return render_template('index.html', result=result, comment=comment, model_name=model_name)
+    return render_template('index.html')
+
+def preprocess(comment):
+    # Use the preprocessing function from preprocessing.py
+    processed_comment = preprocess_comment(comment)
+    tokenizer.fit_on_texts([processed_comment])
+    sequences = tokenizer.texts_to_sequences([processed_comment])
+    padded_sequences = pad_sequences(sequences, maxlen=MAXLEN)
+    return padded_sequences
+
+def predict(comment, model_name):
+    processed_comment = preprocess(comment)
+    if model_name in ml_models:
+        model = ml_models[model_name]
+        prediction = model.predict([processed_comment])
+        label = inverse_label_map[np.argmax(prediction)]
+    elif model_name in dl_models:
+        model = dl_models[model_name]
+        prediction = model.predict(processed_comment)
+        label = inverse_label_map[np.argmax(prediction)]
+    return label
 
 if __name__ == '__main__':
     app.run(debug=True)
