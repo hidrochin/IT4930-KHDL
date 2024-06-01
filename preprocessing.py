@@ -1,4 +1,5 @@
 import re
+import regex
 import string
 import unicodedata
 
@@ -103,7 +104,7 @@ def chuan_hoa_dau_cau_tieng_viet(sentence):
     sentence = sentence.lower()
     words = sentence.split()
     for index, word in enumerate(words):
-        cw = re.sub(r'(^\p{P}*)([p{L}.]*\p{L}+)(\p{P}*$)', r'\1/\2/\3', word).split('/')
+        cw = regex.sub(r'(^\p{P}*)([p{L}.]*\p{L}+)(\p{P}*$)', r'\1/\2/\3', word).split('/')
         if len(cw) == 3:
             cw[1] = chuan_hoa_dau_tu_tieng_viet(cw[1])
         words[index] = ''.join(cw)
