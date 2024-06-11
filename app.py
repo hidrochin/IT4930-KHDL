@@ -73,7 +73,8 @@ def predict():
     tokenizer.fit_on_texts(cleaned_comment)
     new_comment_seq = tokenizer.texts_to_sequences([cleaned_comment])
     new_comment_padded_DL = pad_sequences(new_comment_seq, maxlen=MAXLEN, padding='post')
-    new_comment_padded_ML = pad_sequences(new_comment_seq, maxlen=VOCAB_SIZE_ML, padding='post')
+    # new_comment_padded_ML = pad_sequences(new_comment_seq, maxlen=VOCAB_SIZE_ML, padding='post')
+    new_comment_tfidf = tfidf_vectorizer.transform([cleaned_comment])
 
     predictions = {}
     for model_name, model in zip(models_name, [lr_classifier, rf_classifier, svm_classifier, model_LSTM, model_GRU, model_CONV]):
@@ -84,7 +85,7 @@ def predict():
             print(model_name)
             print(np.argmax(prediction))
         elif model_name in ml:
-            prediction = model.predict(new_comment_padded_ML)
+            prediction = model.predict(new_comment_tfidf)
             # predicted_label = np.argmax(prediction)
             # predicted_label = prediction[0]
             predicted_label = label_map[prediction[0]] if isinstance(prediction[0], str) else prediction[0]
