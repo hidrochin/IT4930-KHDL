@@ -47,15 +47,19 @@ with open('models/tfidf_vectorizer.pkl', 'rb') as file:
     tfidf_vectorizer = pickle.load(file)
 
 label_map = {
-    'quality': 0,
-    'service': 1,
-    'packing': 2,
-    'shipping': 3
+    'Quality': 0,
+    'Service': 1,
+    'Packing': 2,
+    'Shipping': 3
 }
 inverse_label_map = {v: k for k, v in label_map.items()}
 
 @app.route('/')
 def home():
+    return render_template('index.html', models = models_name)
+
+@app.route('/Predict another comment')
+def predict_another():
     return render_template('index.html', models = models_name)
 
 @app.route('/predict', methods=['POST'])
@@ -76,19 +80,25 @@ def predict():
     # for model_name, model in zip(models_name, [ model_LSTM, model_GRU, model_CONV]):
         if model_name in dl:
             prediction = model.predict(new_comment_padded_DL)
-            predicted_label = np.argmax(prediction, axis=0)[0]
+            predicted_label = np.argmax(prediction, axis=1)[0]
             print(model_name)
-            # print(np.argmax(prediction))
+            print(np.argmax(prediction))
         elif model_name in ml:
             prediction = model.predict(new_comment_padded_ML)
-            predicted_label = np.argmax(prediction)
+            # predicted_label = np.argmax(prediction)
+            # predicted_label = prediction[0]
+            predicted_label = label_map[prediction[0]] if isinstance(prediction[0], str) else prediction[0]
             print(model_name)
         predicted_label_name = inverse_label_map[predicted_label]
         predictions[model_name] = predicted_label_name
         print(f"Predicted Label: {predicted_label_name}")
         print(prediction)
+        # Print predictions for debugging
+        print(f"Model: {model_name}, Prediction: {prediction}, Predicted Label: {predicted_label_name}")
+
+    print(f"All predictions: {predictions}")
     
-    return render_template('result.html', comment = new_comment, model = selected_model, predictions = predictions[selected_model])
+    return render_template('result.html', comment = new_comment, model = selected_model, prediction = predictions[selected_model], all_predictions=predictions)
 
 if __name__ == '__main__':
     app.run(debug=True)

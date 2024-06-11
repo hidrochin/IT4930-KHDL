@@ -29,6 +29,41 @@
         p {
             margin-bottom: 10px;
         }
+        .buttons {
+            margin-top: 20px;
+            text-align: center;
+        }
+        .buttons button {
+            background-color: #4CAF50; /* Green */
+            border: none;
+            color: white;
+            padding: 15px 32px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+            margin: 4px 2px;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .buttons button:hover {
+            background-color: #45a049;
+        }
+        .predictions-table {
+            margin-top: 20px;
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .predictions-table th, .predictions-table td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: center;
+        }
+        .predictions-table th {
+            background-color: #f2f2f2;
+            color: black;
+        }
     </style>
 </head>
 <body>
@@ -37,8 +72,43 @@
         <div class="result">
             <p><strong>Input Text:</strong> {{ comment }}</p>
             <p><strong>Selected Model:</strong> {{ model }}</p>
-            <p><strong>Predicted Label:</strong> {{ result }}</p>
+            <p><strong>Predicted Label:</strong> {{ prediction }}</p>
         </div>
+        <div class="buttons">
+            <form action="/" method="get" style="display: inline;">
+                <button type="submit">Predict Another Comment</button>
+            </form>
+            <button id="toggleButton" onclick="toggleTable()">All Predictions from Other Models</button>
+        </div>
+        <table id="predictions-table" class="predictions-table" style="display:none;">
+            <thead>
+                <tr>
+                    <th>Model</th>
+                    <th>Prediction</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for model, prediction in all_predictions.items() %}
+                <tr>
+                    <td>{{ model }}</td>
+                    <td>{{ prediction }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
     </div>
+    <script>
+        function toggleTable() {
+            var table = document.getElementById('predictions-table');
+            var button = document.getElementById('toggleButton');
+            if (table.style.display === 'none' || table.style.display === '') {
+                table.style.display = 'table';
+                button.innerText = 'Hide Predictions from Other Models';
+            } else {
+                table.style.display = 'none';
+                button.innerText = 'All Predictions from Other Models';
+            }
+        }
+    </script>
 </body>
 </html>
