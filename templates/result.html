@@ -3,14 +3,42 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Prediction Result</title>
-    <link rel="stylesheet" href="style.css">
+    <title>Result</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+        }
+        .container {
+            width: 80%;
+            margin: auto;
+            padding: 20px;
+        }
+        h1 {
+            text-align: center;
+        }
+        .result {
+            margin-top: 20px;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        p {
+            margin-bottom: 10px;
+        }
+    </style>
 </head>
 <body>
-    <h1>Prediction Result</h1>
-    <p>Comment: {{ comment }}</p>
-    <p>Model: {{model}} </p>
-    <p>Result: {{ result }}</p>
-    <a href="/">Try another comment</a>
+    <div class="container">
+        <h1>Result</h1>
+        <div class="result">
+            <p><strong>Input Text:</strong> {{ comment }}</p>
+            <p><strong>Selected Model:</strong> {{ model }}</p>
+            <p><strong>Predicted Label:</strong> {{ result }}</p>
+        </div>
+    </div>
 </body>
 </html>

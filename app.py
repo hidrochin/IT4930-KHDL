@@ -1,48 +1,50 @@
+import os
 import numpy as np
 import pickle
-from flask import Flask, request, jsonify, render_template
+from flask import Flask, request, render_template
 from keras.preprocessing.sequence import pad_sequences
 from keras.models import load_model
 from preprocessing import preprocess_comment
-from tensorflow.keras.preprocessing.text import Tokenizer
-from model.create_models import create_model_GRU, create_model_LSTM, create_model_conv
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.svm import SVC
+from sklearn.linear_model import LogisticRegression
 
 app = Flask(__name__)
 
+# Define the path to the templates directory
+template_dir = os.path.abspath('templates')
+app.template_folder = template_dir
+
 EMBEDDING_DIM = 16
-MAXLEN = 120  # Độ dài tối đa của chuỗi đầu vào
-VOCAB_SIZE_DL = 5637 
-VOCAB_SIZE_ML = 6315   
+VOCAB_SIZE_ML = 6336
+MAXLEN = 120
 OOV_TOKEN = "<OOV>"
 
-#Initialize models
 models_name = ['Logistic Regression', 'Random Forrest', 'SVM', 'LSTM', 'GRU', 'CONV']
-# models_name = [ 'LSTM', 'GRU', 'CONV']
 dl = [ 'LSTM', 'GRU', 'CONV']
 ml = ['Logistic Regression', 'Random Forrest', 'SVM']
-model_LSTM = create_model_LSTM(VOCAB_SIZE_DL, EMBEDDING_DIM, MAXLEN)
-model_GRU = create_model_GRU(VOCAB_SIZE_DL, EMBEDDING_DIM, MAXLEN)
-model_CONV = create_model_conv(VOCAB_SIZE_DL, EMBEDDING_DIM, MAXLEN)
 
-#Build models first
-model_LSTM.build(input_shape=(EMBEDDING_DIM, MAXLEN))
-model_GRU.build(input_shape=(None, MAXLEN))
-model_CONV.build(input_shape=(None, MAXLEN))
+# Load DL models
+model_LSTM = load_model('models/LSTM.model.h5')
+model_GRU = load_model('models/GRU.model.h5')
+model_CONV = load_model('models/conv.model.h5')
 
-# Load weights
-model_LSTM.load_weights('model/LSTM.weights.h5')
-model_GRU.load_weights('model/GRU.weights.h5')
-model_CONV.load_weights('model/conv.weights.h5')
-
-with open('model/lr_classifier.pkl', 'rb') as file:
+# Load ML models
+with open('models/lr_classifier.pkl', 'rb') as file:
     lr_classifier = pickle.load(file)
-with open('model/rf_classifier.pkl', 'rb') as file:
+with open('models/rf_classifier.pkl', 'rb') as file:
     rf_classifier = pickle.load(file)
-with open('model/svm_classifier.pkl', 'rb') as file:
+with open('models/svm_classifier.pkl', 'rb') as file:
     svm_classifier = pickle.load(file)
 
-# Instantiate the Tokenizer class, passing in the correct values for num_words and oov_token
-tokenizer = Tokenizer(num_words=MAXLEN, oov_token=OOV_TOKEN)
+# Load the Tokenizer
+with open('models/tokenizer.pkl', 'rb') as file:
+    tokenizer = pickle.load(file)
+
+# Load the TF-IDF vectorizer
+with open('models/tfidf_vectorizer.pkl', 'rb') as file:
+    tfidf_vectorizer = pickle.load(file)
 
 label_map = {
     'quality': 0,
@@ -75,19 +77,18 @@ def predict():
         if model_name in dl:
             prediction = model.predict(new_comment_padded_DL)
             predicted_label = np.argmax(prediction, axis=0)[0]
-            print(np.argmax(prediction))
+            print(model_name)
+            # print(np.argmax(prediction))
         elif model_name in ml:
             prediction = model.predict(new_comment_padded_ML)
             predicted_label = np.argmax(prediction)
             print(model_name)
         predicted_label_name = inverse_label_map[predicted_label]
         predictions[model_name] = predicted_label_name
+        print(f"Predicted Label: {predicted_label_name}")
         print(prediction)
     
-    return render_template('result.html', comment = new_comment, model = selected_model, result = predictions[selected_model])
+    return render_template('result.html', comment = new_comment, model = selected_model, predictions = predictions[selected_model])
 
 if __name__ == '__main__':
     app.run(debug=True)
-
-
-#Giao hàng nhanh nhưng đóng gói tệ quá
